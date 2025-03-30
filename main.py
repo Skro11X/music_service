@@ -1,19 +1,14 @@
-import os
-import aiofiles
-from fastapi import FastAPI, UploadFile, File
-from fastapi.responses import FileResponse
 
-app = FastAPI()
+from fastapi import FastAPI
+from database import database_instance
+from endpoints import router
 
-@app.post("/file")
-async def upload_file(file: UploadFile,
-                      filename: str = None):
-    if not file.content_type.startswith("audio/"):
-        return {"wrong": "wrong file type"}
-    if filename is None:
-        filename = file.filename
-    file_path = os.path.join("./files", filename)
-    async with aiofiles.open(file_path, "wb") as f:
-        content = await file.read()
-        await f.write(content)
-    return {"good": "file sent to server"}
+
+def create_app():
+    database_instance.create_database()
+    app_instance = FastAPI()
+    app_instance.include_router(router)
+    return app_instance
+
+
+app = create_app()
