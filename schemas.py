@@ -4,9 +4,14 @@ from pydantic import BaseModel
 class YandexUserSchem(BaseModel):
 
     username: str
+    name: str | None
 
     class Config:
         from_attributes = True
+
+class YandexUserNewNameSchem(BaseModel):
+
+    name: str
 
 class FileShem(BaseModel):
 
