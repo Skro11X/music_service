@@ -1,4 +1,4 @@
-from sqlalchemy import select, update
+from sqlalchemy import select, update, delete
 from sqlalchemy.dialects.postgresql import Insert
 from database import database_instance
 from models import YandexUserORM
@@ -6,11 +6,11 @@ from models import YandexUserORM
 
 class UserRepository:
     @classmethod
-    def create_or_update(cls, dict_of_new_info: dict, **kwargs) -> YandexUserORM:
+    def create_or_update(cls, **kwargs) -> YandexUserORM:
         with (database_instance.session() as session):
             query = Insert(YandexUserORM).values(**kwargs).on_conflict_do_update(
                 index_elements=["username"],
-                set_=dict_of_new_info
+                set_={"access_token": kwargs.get("access_token")}
             ).returning(YandexUserORM.username)
             result = session.execute(query)
             session.commit()
@@ -41,3 +41,11 @@ class UserRepository:
             session.add(user)
             session.commit()
             return user
+
+    @classmethod
+    def delete(self, user_id):
+        with database_instance.session() as session:
+            query = delete(YandexUserORM).where(YandexUserORM.id==user_id)
+            user = session.execute(query)
+            session.commit()
+            return True

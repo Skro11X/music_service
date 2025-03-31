@@ -9,10 +9,10 @@ from fastapi.responses import RedirectResponse, JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
 
 from database import database_instance
-from models import YandexUserORM
+from models import YandexUserORM, Role
 from repository import UserRepository
-from schemas import Token, YandexUserSchem, YandexUserNewNameSchem
-from tokens import ACCESS_TOKEN_EXPIRE_MINUTES, create_access_token, get_current_user
+from schemas import Token, YandexUserSchem, YandexUserNewNameSchem, DeleteResponseShem
+from tokens import ACCESS_TOKEN_EXPIRE_MINUTES, create_access_token, get_current_user, check_admin_user
 
 router = APIRouter()
 
@@ -50,7 +50,7 @@ def register(code: str = ""):
     access_token = create_access_token(
         data={"sub": user_info["login"]}, expires_delta=access_token_expires
     )
-    UserRepository.create_or_update(dict_of_new_info={"access_token": access_token}, username=user_info['login'])
+    UserRepository.create_or_update(access_token=access_token, username=user_info['login'], role=Role.MEMBER)
 
     return Token(access_token=access_token, token_type="bearer")
 
@@ -75,7 +75,7 @@ async def read_users_me(
 
 
 @router.post("/users/me/", response_model=YandexUserSchem)
-async def read_users_me(
+def update_users_me(
     current_user: Annotated[YandexUserORM, Depends(get_current_user)],
     body: dict | None = Body()
 ):
@@ -86,3 +86,12 @@ async def read_users_me(
         )
     UserRepository.update(current_user, body)
     return YandexUserNewNameSchem.model_validate(current_user)
+
+
+@router.post('/users/delete', response_model=DeleteResponseShem)
+def delete_users(
+    current_user: Annotated[YandexUserORM, Depends(check_admin_user)],
+    user_id: int = Body(embed=True, default=0),
+):
+    is_deleted = UserRepository.delete(user_id=user_id)
+    return DeleteResponseShem(response=is_deleted)

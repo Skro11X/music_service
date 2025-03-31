@@ -5,7 +5,9 @@ from jwt.exceptions import InvalidTokenError
 from passlib.context import CryptContext
 from typing import Annotated
 from fastapi import status, HTTPException, Depends
-from schemas import TokenData, YandexUserSchem
+
+from models import Role, YandexUserORM
+from schemas import TokenDataShem
 from repository import UserRepository
 
 
@@ -45,6 +47,14 @@ def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
         raise credentials_exception
     return user
 
+def check_admin_user(user: Annotated[YandexUserORM, Depends(get_current_user)]):
+    if user.role != Role.ADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="don't have the required permissions",
+        )
+    return user
+
 
 def get_token_data(token: str):
     try:
@@ -52,7 +62,7 @@ def get_token_data(token: str):
         username = payload.get("sub")
         if username is None:
             raise credentials_exception
-        token_data = TokenData(username=username)
+        token_data = TokenDataShem(username=username)
     except InvalidTokenError:
         raise credentials_exception
     return token_data
