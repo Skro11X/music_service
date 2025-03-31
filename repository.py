@@ -1,12 +1,12 @@
 import os
 from random import choices
 from string import ascii_letters
-from sqlalchemy import select, update, delete
+from sqlalchemy import select, update, delete, insert
 from sqlalchemy.dialects.postgresql import Insert
 from sqlalchemy.orm import joinedload
 
 from database import database_instance
-from models import YandexUserORM
+from models import YandexUserORM, FileOrm
 
 
 class UserRepository:
@@ -23,7 +23,7 @@ class UserRepository:
                 if not os.path.exists(folder_path):
                     os.makedirs(folder_path)
                 else:
-                    os.makedirs(folder_path+''.join(choices(ascii_letters, k=12)))
+                    os.makedirs(folder_path + ''.join(choices(ascii_letters, k=12)))
                 result.file_path = folder_path
             session.commit()
             return result
@@ -69,3 +69,12 @@ class UserRepository:
             result = session.execute(query).scalars()
             return result.first().files
 
+
+class FileRepository:
+    @classmethod
+    def create_new_file(cls, **kwargs):
+        with database_instance.session() as session:
+            query = Insert(FileOrm).values(**kwargs).on_conflict_do_nothing()
+            result = session.execute(query).scalar()
+            session.commit()
+            return result

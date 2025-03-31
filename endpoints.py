@@ -4,14 +4,11 @@ from typing import Annotated, List
 
 import aiofiles
 import requests
-from fastapi import UploadFile, APIRouter, Request, Header, Depends, HTTPException, status, Body
-from fastapi.responses import RedirectResponse, JSONResponse
-from fastapi.security import OAuth2PasswordRequestForm
-
-from database import database_instance
+from fastapi import UploadFile, APIRouter, Depends, HTTPException, status, Body
+from fastapi.responses import RedirectResponse
 from models import YandexUserORM, Role
-from repository import UserRepository
-from schemas import Token, YandexUserSchem, YandexUserNewNameSchem, DeleteResponseShem, FileShem
+from repository import UserRepository, FileRepository
+from schemas import Token, YandexUserSchem, YandexUserNewNameSchem, DeleteResponseShem, FileShem, FileWriteShem
 from tokens import ACCESS_TOKEN_EXPIRE_MINUTES, create_access_token, get_current_user, check_admin_user
 
 router = APIRouter()
@@ -30,11 +27,17 @@ async def upload_file(
         return {'wrong': 'wrong file type'}
     if filename is None:
         filename = file.filename
-    file_path = os.path.join('./files', filename)
+    file_path = os.path.join(current_user.file_path, filename)
+    is_overwrite = False
+    if os.path.exists(file_path):
+        is_overwrite = True
     async with aiofiles.open(file_path, 'wb') as f:
         content = await file.read()
         await f.write(content)
-    return {'good': 'file sent to server'}
+        FileRepository.create_new_file(file_path=current_user.file_path,
+                                       file_name=filename,
+                                       user=current_user.id)
+        return FileWriteShem(file_path=current_user.file_path, file_name=filename, is_overwrite=is_overwrite)
 
 
 @router.get("/auth/yandex")
