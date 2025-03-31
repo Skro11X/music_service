@@ -9,16 +9,16 @@ class YandexUserSchem(BaseModel):
     class Config:
         from_attributes = True
 
-class YandexUserNewNameSchem(BaseModel):
 
+class YandexUserNewNameSchem(BaseModel):
     name: str
 
-class FileShem(BaseModel):
 
-    id: int
+class FileShem(BaseModel):
     file_name: str
-    file_path: str
-    user: int
+
+    class Config:
+        from_attributes = True
 
 
 class Token(BaseModel):

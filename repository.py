@@ -1,5 +1,10 @@
+import os
+from random import choices
+from string import ascii_letters
 from sqlalchemy import select, update, delete
 from sqlalchemy.dialects.postgresql import Insert
+from sqlalchemy.orm import joinedload
+
 from database import database_instance
 from models import YandexUserORM
 
@@ -11,10 +16,17 @@ class UserRepository:
             query = Insert(YandexUserORM).values(**kwargs).on_conflict_do_update(
                 index_elements=["username"],
                 set_={"access_token": kwargs.get("access_token")}
-            ).returning(YandexUserORM.username)
-            result = session.execute(query)
+            ).returning(YandexUserORM)
+            result = session.execute(query).scalar_one()
+            if result.file_path is None:
+                folder_path = "files/"+result.username
+                if not os.path.exists(folder_path):
+                    os.makedirs(folder_path)
+                else:
+                    os.makedirs(folder_path+''.join(choices(ascii_letters, k=12)))
+                result.file_path = folder_path
             session.commit()
-            return result.fetchone()
+            return result
 
     @classmethod
     def exists(cls, **kwargs) -> YandexUserORM | None:
@@ -46,6 +58,14 @@ class UserRepository:
     def delete(self, user_id):
         with database_instance.session() as session:
             query = delete(YandexUserORM).where(YandexUserORM.id==user_id)
-            user = session.execute(query)
+            session.execute(query)
             session.commit()
             return True
+
+    @classmethod
+    def get_files_from_user(cls, user):
+        with database_instance.session() as session:
+            query = select(YandexUserORM).where(YandexUserORM.id==user.id)
+            result = session.execute(query).scalars()
+            return result.first().files
+

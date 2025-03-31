@@ -1,6 +1,6 @@
 import os
 from datetime import timedelta
-from typing import Annotated
+from typing import Annotated, List
 
 import aiofiles
 import requests
@@ -11,7 +11,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from database import database_instance
 from models import YandexUserORM, Role
 from repository import UserRepository
-from schemas import Token, YandexUserSchem, YandexUserNewNameSchem, DeleteResponseShem
+from schemas import Token, YandexUserSchem, YandexUserNewNameSchem, DeleteResponseShem, FileShem
 from tokens import ACCESS_TOKEN_EXPIRE_MINUTES, create_access_token, get_current_user, check_admin_user
 
 router = APIRouter()
@@ -22,8 +22,10 @@ Secret = 'c6dc0ff0b714431f95832bf309f1542e'
 
 
 @router.post("/file")
-async def upload_file(file: UploadFile,
-                      filename: str = None):
+async def upload_file(
+        current_user: Annotated[YandexUserORM, Depends(get_current_user)],
+        file: UploadFile,
+        filename: str = None):
     if not file.content_type.startswith('audio/'):
         return {'wrong': 'wrong file type'}
     if filename is None:
@@ -43,14 +45,14 @@ def register(code: str = ""):
     response = requests.post('https://oauth.yandex.ru/token', data={'grant_type': 'authorization_code', 'code': code,
                                                                     'client_id': ClientID, 'client_secret': Secret})
     data = response.json()
-    user_info = requests.post('https://login.yandex.ru/info', data={'oauth_token': data.get('access_token'),
-                                                                    'format': 'json'}).json()
+    user_info = requests.post('https://login.yandex.ru/info', data={'oauth_token': data.get('access_token'), 'format': 'json'})
+    user_info = user_info.json()
     #todo выводить ошибку в случае запросов с ошибкой.
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"sub": user_info["login"]}, expires_delta=access_token_expires
     )
-    UserRepository.create_or_update(access_token=access_token, username=user_info['login'], role=Role.MEMBER)
+    user = UserRepository.create_or_update(access_token=access_token, username=user_info['login'], role=Role.MEMBER)
 
     return Token(access_token=access_token, token_type="bearer")
 
@@ -95,3 +97,9 @@ def delete_users(
 ):
     is_deleted = UserRepository.delete(user_id=user_id)
     return DeleteResponseShem(response=is_deleted)
+
+@router.get("/users/me/files/", response_model=List[FileShem])
+def list_of_files(
+    current_user: Annotated[YandexUserORM, Depends(get_current_user)],
+):
+    return UserRepository.get_files_from_user(current_user)
