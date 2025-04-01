@@ -8,7 +8,7 @@ from fastapi import UploadFile, APIRouter, Depends, HTTPException, status, Body
 from fastapi.responses import RedirectResponse
 from models import YandexUserORM, Role
 from repository import UserRepository, FileRepository
-from schemas import Token, YandexUserSchem, YandexUserNewNameSchem, DeleteResponseShem, FileShem, FileWriteShem
+from schemas import Token, YandexUserSchem, DeleteResponseShem, FileShem, FileWriteShem
 from tokens import ACCESS_TOKEN_EXPIRE_MINUTES, create_access_token, get_current_user, check_admin_user
 
 router = APIRouter()
@@ -90,7 +90,7 @@ def update_users_me(
             detail="empty response",
         )
     UserRepository.update(current_user, body)
-    return YandexUserNewNameSchem.model_validate(current_user)
+    return YandexUserSchem.model_validate(current_user)
 
 
 @router.post('/users/delete', response_model=DeleteResponseShem)

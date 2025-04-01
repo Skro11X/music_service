@@ -10,10 +10,6 @@ class YandexUserSchem(BaseModel):
         from_attributes = True
 
 
-class YandexUserNewNameSchem(BaseModel):
-    name: str
-
-
 class FileShem(BaseModel):
     file_path: str
     file_name: str

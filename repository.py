@@ -52,6 +52,7 @@ class UserRepository:
                 setattr(user, key, value)
             session.add(user)
             session.commit()
+            session.refresh(user)
             return user
 
     @classmethod

@@ -3,7 +3,7 @@ from sqlalchemy import create_engine, Column, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, scoped_session, Session
 
-DATABASE_URL = "postgresql://ilusha:12345@localhost/db"
+DATABASE_URL = "postgresql+psycopg2://ilusha:12345@localhost/db"
 
 engine = create_engine(
     DATABASE_URL,
