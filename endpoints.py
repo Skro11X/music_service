@@ -5,7 +5,7 @@ from typing import Annotated, List
 import aiofiles
 import requests
 from fastapi import UploadFile, APIRouter, Depends, HTTPException, status, Body
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, JSONResponse
 from models import YandexUserORM, Role
 from repository import UserRepository, FileRepository
 from schemas import Token, YandexUserSchem, DeleteResponseShem, FileShem, FileWriteShem
@@ -44,11 +44,14 @@ async def upload_file(
 def register(code: str = ""):
     if code == "":
         return RedirectResponse('https://oauth.yandex.ru/authorize?response_type=code&client_id=033faf2f43c74087ae0f06e2989e4ce7')
-
     response = requests.post('https://oauth.yandex.ru/token', data={'grant_type': 'authorization_code', 'code': code,
-                                                                    'client_id': ClientID, 'client_secret': Secret})
+                                                                        'client_id': ClientID, 'client_secret': Secret})
+    if response.status_code != 200:
+        return JSONResponse(response.json(), status_code=status.HTTP_400_BAD_REQUEST)
     data = response.json()
     user_info = requests.post('https://login.yandex.ru/info', data={'oauth_token': data.get('access_token'), 'format': 'json'})
+    if user_info.status_code != 200:
+        return JSONResponse(user_info.json(), status_code=status.HTTP_400_BAD_REQUEST)
     user_info = user_info.json()
     #todo выводить ошибку в случае запросов с ошибкой.
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
