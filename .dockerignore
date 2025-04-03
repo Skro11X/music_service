@@ -1,0 +1,38 @@
+# Исключаем файлы и папки, которые не нужны в контейнере
+
+# Игнорируем виртуальные окружения
+venv/
+../.env/
+.venv/
+
+# Исключаем файлы конфигурации IDE и редакторов
+.idea/
+.vscode/
+*.swp
+
+# Игнорируем файлы логов
+logs/
+*.log
+
+# Исключаем кэш Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Исключаем файлы Git
+.git/
+../.gitignore
+
+# Исключаем node_modules (если есть фронтенд)
+node_modules/
+npm-debug.log
+yarn.lock
+
+# Исключаем файлы Docker
+docker-compose.override.yml
+Dockerfile.dev
+
+# Исключаем артефакты сборки
+dist/
+build/
