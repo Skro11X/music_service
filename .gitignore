@@ -105,11 +105,9 @@ ipython_config.py
 #   This is especially recommended for binary packages to ensure reproducibility, and is more
 #   commonly ignored for libraries.
 #   https://python-poetry.org/docs/basic-usage/#commit-your-poetrylock-file-to-version-control
-<<<<<<< HEAD
+
 poetry.lock
-=======
-#poetry.lock
->>>>>>> efe26fe3e9e4ea146b7e26103cb35b4f1c2185b3
+
 
 # pdm
 #   Similar to Pipfile.lock, it is generally recommended to include pdm.lock in version control.
@@ -132,11 +130,9 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-<<<<<<< HEAD
-music_service/.env
-=======
-.env
->>>>>>> efe26fe3e9e4ea146b7e26103cb35b4f1c2185b3
+
+../ToDo/.env
+
 .venv
 env/
 venv/
@@ -173,11 +169,11 @@ cython_debug/
 #  be found at https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore
 #  and can be added to the global gitignore or merged into this file.  For a more nuclear
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
-<<<<<<< HEAD
+
 .idea/
-=======
-#.idea/
->>>>>>> efe26fe3e9e4ea146b7e26103cb35b4f1c2185b3
+
+
+
 
 # Ruff stuff:
 .ruff_cache/
